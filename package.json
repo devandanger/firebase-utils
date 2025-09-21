@@ -1,21 +1,22 @@
 {
-  "name": "@firebase-toolbox/fsdiff",
-  "version": "1.0.0",
-  "description": "CLI tool to compare Firestore data between two projects or environments",
+  "name": "@firebase-toolbox/firebase-utils",
+  "version": "1.1.0",
+  "description": "CLI utilities for Firebase/Firestore operations including diff and view commands",
   "type": "module",
-  "main": "fsdiff.mjs",
+  "main": "bin/fsdiff.mjs",
   "bin": {
-    "fsdiff": "./fsdiff.mjs"
+    "fsdiff": "./bin/fsdiff.mjs",
+    "fsview": "./bin/fsview.mjs"
   },
   "files": [
-    "fsdiff.mjs",
+    "bin/",
     "lib/",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"
   ],
   "scripts": {
-    "start": "node fsdiff.mjs",
+    "start": "node bin/fsdiff.mjs",
     "test": "node --test test/**/*.test.mjs",
     "test:unit": "node --test test/unit/*.test.mjs",
     "test:integration": "node --test test/integration/*.test.mjs",
@@ -39,7 +40,10 @@
     "firebase",
     "diff",
     "compare",
+    "view",
     "cli",
+    "utilities",
+    "tools",
     "gcp",
     "google-cloud",
     "devops",

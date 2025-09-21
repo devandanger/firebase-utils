@@ -5,15 +5,14 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { FirestoreClient } from './lib/firestore-client.mjs';
-import { normalizeValue } from './lib/normalizer.mjs';
-import { compareDocuments, compareQueries } from './lib/comparator.mjs';
-import { formatDiff } from './lib/formatter.mjs';
+import { FirestoreClient } from '../lib/firestore-client.mjs';
+import { compareDocuments, compareQueries } from '../lib/comparator.mjs';
+import { formatDiff } from '../lib/formatter.mjs';
 
 program
   .name('fsdiff')
   .description('Compare Firestore data between two projects or environments')
-  .version('1.0.0')
+  .version('1.1.0')
   .option('--mode <mode>', 'Comparison mode: doc or query', 'doc')
   .option('--projectA <project>', 'Project ID for source A')
   .option('--projectB <project>', 'Project ID for source B')
