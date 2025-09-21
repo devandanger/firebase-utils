@@ -28,11 +28,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/firebase-utils.git"
+    "url": "git+https://github.com/devandanger/firebase-utils.git"
   },
-  "homepage": "https://github.com/yourusername/firebase-utils#readme",
+  "homepage": "https://github.com/devandanger/firebase-utils#readme",
   "bugs": {
-    "url": "https://github.com/yourusername/firebase-utils/issues"
+    "url": "https://github.com/devandanger/firebase-utils/issues"
   },
   "keywords": [
     "firestore",
@@ -45,7 +45,7 @@
     "devops",
     "ci-cd"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "Evan Anger <devandanger@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",
