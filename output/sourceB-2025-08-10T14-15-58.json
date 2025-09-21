@@ -1,0 +1,77 @@
+{
+  "_id": "mjgxwWQhHnaGSgfd7g7w",
+  "_metadata": {
+    "createTime": {
+      "_type": "Timestamp",
+      "iso": "2025-08-10T14:04:30.808Z",
+      "nanoseconds": 808031000,
+      "seconds": 1754834670
+    },
+    "updateTime": {
+      "_type": "Timestamp",
+      "iso": "2025-08-10T14:04:30.808Z",
+      "nanoseconds": 808031000,
+      "seconds": 1754834670
+    }
+  },
+  "additionalInfo": {
+    "customerContactInfo": {
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "phoneNumber": "",
+      "venueFields": []
+    }
+  },
+  "checkout": {
+    "grossUpPaymentFees": 0.67,
+    "netAmount": 10.9,
+    "orderSubTotal": 10,
+    "orderTotal": 12.66,
+    "paymentFees": 0.67,
+    "paymentMethodRequired": true,
+    "serviceFees": 1.09,
+    "subTotalBeforeFees": 10.9,
+    "tax": 0,
+    "tip": 0.9,
+    "totalFees": 1.76
+  },
+  "createDt": "2025-08-10T14:04:27.819Z",
+  "items": [
+    {
+      "ageRestricted": false,
+      "customizations": [
+        {
+          "name": "Flavor",
+          "options": [
+            {
+              "enabled": true,
+              "name": "Vanilla",
+              "price": 0,
+              "selected": false
+            },
+            {
+              "enabled": true,
+              "name": "Cookies N' Cream",
+              "price": 0,
+              "selected": true
+            }
+          ],
+          "selectionType": 1
+        }
+      ],
+      "description": "",
+      "enabled": true,
+      "index": 1,
+      "name": "Ice Cream",
+      "path": "",
+      "price": 10,
+      "taxAmount": 0
+    }
+  ],
+  "location": "Pickup Window",
+  "name": "Evan iOS app",
+  "orderID": 223,
+  "status": "paid",
+  "uid": "6d9de3oho6Ze68UoNYTWRChcRrG2"
+}

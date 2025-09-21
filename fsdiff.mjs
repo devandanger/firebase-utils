@@ -28,8 +28,10 @@ program
   .option('--fields <fields>', 'Comma-separated list of fields to compare')
   .option('--ignore-fields <fields>', 'Comma-separated list of fields to ignore')
   .option('--key <key>', 'Field to use as comparison key (default: id)', 'id')
-  .option('--format <format>', 'Output format: pretty or json', 'pretty')
+  .option('--format <format>', 'Output format: pretty, side-by-side, or json', 'pretty')
   .option('--output-dir <dir>', 'Directory to dump normalized JSON for later diffing')
+  .option('--output-format <format>', 'Format for output files: json, yaml, or text', 'json')
+  .option('--separate-files', 'Create separate files per document/field for granular diffing', false)
   .option('--limit <number>', 'Limit number of documents in query mode', parseInt)
   .option('--stream', 'Use streaming for large queries', false)
   .option('--verbose', 'Enable verbose output', false);
@@ -112,7 +114,20 @@ async function main() {
     }
 
     if (options.outputDir) {
-      await saveNormalizedData(options.outputDir, result.normalizedA, result.normalizedB);
+      await saveNormalizedData(
+        options.outputDir, 
+        result.normalizedA, 
+        result.normalizedB,
+        {
+          format: options.outputFormat,
+          separateFiles: options.separateFiles,
+          mode: options.mode,
+          pathA: options.pathA,
+          pathB: options.pathB,
+          collectionA: options.collectionA,
+          collectionB: options.collectionB
+        }
+      );
       console.log(chalk.green(`✓ Normalized data saved to ${options.outputDir}`));
     }
 
@@ -140,20 +155,200 @@ async function main() {
   }
 }
 
-async function saveNormalizedData(outputDir, dataA, dataB) {
+async function saveNormalizedData(outputDir, dataA, dataB, options = {}) {
   await fs.mkdir(outputDir, { recursive: true });
   
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+  const { format = 'json', separateFiles = false, mode, pathA, pathB, collectionA, collectionB } = options;
+  
+  if (separateFiles && Array.isArray(dataA) && Array.isArray(dataB)) {
+    await saveSeparateFiles(outputDir, dataA, dataB, { format, timestamp, mode });
+  } else {
+    await saveCombinedFiles(outputDir, dataA, dataB, { format, timestamp, mode, pathA, pathB, collectionA, collectionB });
+  }
+  
+  // Create a summary file for easy external diffing
+  await createDiffSummary(outputDir, dataA, dataB, { format, timestamp, mode });
+}
+
+async function saveCombinedFiles(outputDir, dataA, dataB, options) {
+  const { format, timestamp, mode, pathA, pathB, collectionA, collectionB } = options;
+  const ext = getFileExtension(format);
+  
+  const metadata = {
+    mode,
+    timestamp: new Date().toISOString(),
+    sourceA: mode === 'doc' ? pathA : collectionA,
+    sourceB: mode === 'doc' ? pathB : collectionB,
+    countA: Array.isArray(dataA) ? dataA.length : 1,
+    countB: Array.isArray(dataB) ? dataB.length : 1
+  };
+  
+  const contentA = formatContent(dataA, format, metadata);
+  const contentB = formatContent(dataB, format, metadata);
+  
+  await Promise.all([
+    fs.writeFile(path.join(outputDir, `sourceA-${timestamp}.${ext}`), contentA),
+    fs.writeFile(path.join(outputDir, `sourceB-${timestamp}.${ext}`), contentB),
+    fs.writeFile(path.join(outputDir, `metadata-${timestamp}.json`), JSON.stringify(metadata, null, 2))
+  ]);
+}
+
+async function saveSeparateFiles(outputDir, dataA, dataB, options) {
+  const { format, timestamp } = options;
+  const ext = getFileExtension(format);
+  
+  // Create subdirectories
+  const dirA = path.join(outputDir, 'sourceA', timestamp);
+  const dirB = path.join(outputDir, 'sourceB', timestamp);
+  
+  await Promise.all([
+    fs.mkdir(dirA, { recursive: true }),
+    fs.mkdir(dirB, { recursive: true })
+  ]);
+  
+  // Save each document as a separate file
+  const savePromises = [];
+  
+  for (const [index, doc] of dataA.entries()) {
+    const filename = doc._id ? `${doc._id}.${ext}` : `doc-${index}.${ext}`;
+    const content = formatContent(doc, format);
+    savePromises.push(fs.writeFile(path.join(dirA, filename), content));
+  }
+  
+  for (const [index, doc] of dataB.entries()) {
+    const filename = doc._id ? `${doc._id}.${ext}` : `doc-${index}.${ext}`;
+    const content = formatContent(doc, format);
+    savePromises.push(fs.writeFile(path.join(dirB, filename), content));
+  }
+  
+  await Promise.all(savePromises);
+}
+
+async function createDiffSummary(outputDir, dataA, dataB, options) {
+  const { timestamp } = options;
+  
+  const summary = {
+    timestamp: new Date().toISOString(),
+    comparison: {
+      sourceA: {
+        type: Array.isArray(dataA) ? 'collection' : 'document',
+        count: Array.isArray(dataA) ? dataA.length : 1
+      },
+      sourceB: {
+        type: Array.isArray(dataB) ? 'collection' : 'document', 
+        count: Array.isArray(dataB) ? dataB.length : 1
+      }
+    },
+    files: {
+      sourceA: `sourceA-${timestamp}.${getFileExtension(options.format)}`,
+      sourceB: `sourceB-${timestamp}.${getFileExtension(options.format)}`,
+      metadata: `metadata-${timestamp}.json`
+    },
+    externalDiffCommands: {
+      vscode: `code --diff "${path.join(outputDir, `sourceA-${timestamp}.${getFileExtension(options.format)}`)}" "${path.join(outputDir, `sourceB-${timestamp}.${getFileExtension(options.format)}`)}"`,
+      meld: `meld "${path.join(outputDir, `sourceA-${timestamp}.${getFileExtension(options.format)}`)}" "${path.join(outputDir, `sourceB-${timestamp}.${getFileExtension(options.format)}`)}"`,
+      vimdiff: `vimdiff "${path.join(outputDir, `sourceA-${timestamp}.${getFileExtension(options.format)}`)}" "${path.join(outputDir, `sourceB-${timestamp}.${getFileExtension(options.format)}`)}"`,
+      diff: `diff -u "${path.join(outputDir, `sourceA-${timestamp}.${getFileExtension(options.format)}`)}" "${path.join(outputDir, `sourceB-${timestamp}.${getFileExtension(options.format)}`)}"`,
+      directory: options.separateFiles ? `meld "${path.join(outputDir, 'sourceA', timestamp)}" "${path.join(outputDir, 'sourceB', timestamp)}"` : null
+    }
+  };
   
   await fs.writeFile(
-    path.join(outputDir, `sourceA-${timestamp}.json`),
-    JSON.stringify(dataA, null, 2)
+    path.join(outputDir, `diff-summary-${timestamp}.json`),
+    JSON.stringify(summary, null, 2)
   );
+}
+
+function formatContent(data, format, metadata = {}) {
+  switch (format) {
+    case 'json':
+      return JSON.stringify(data, null, 2);
+    
+    case 'yaml':
+      // For YAML, we'll use a simple format since we don't want to add yaml dependency
+      return `# Generated by fsdiff at ${new Date().toISOString()}\n# Metadata: ${JSON.stringify(metadata)}\n\n${jsonToYaml(data)}`;
+    
+    case 'text':
+      return `# Generated by fsdiff at ${new Date().toISOString()}\n# Metadata: ${JSON.stringify(metadata, null, 2)}\n\n${jsonToText(data)}`;
+    
+    default:
+      return JSON.stringify(data, null, 2);
+  }
+}
+
+function getFileExtension(format) {
+  switch (format) {
+    case 'yaml': return 'yml';
+    case 'text': return 'txt';
+    case 'json':
+    default: return 'json';
+  }
+}
+
+function jsonToYaml(obj, indent = 0) {
+  const spaces = '  '.repeat(indent);
   
-  await fs.writeFile(
-    path.join(outputDir, `sourceB-${timestamp}.json`),
-    JSON.stringify(dataB, null, 2)
-  );
+  if (obj === null) return 'null';
+  if (obj === undefined) return 'undefined';
+  if (typeof obj === 'string') return `"${obj.replace(/"/g, '\\"')}"`;
+  if (typeof obj === 'number' || typeof obj === 'boolean') return String(obj);
+  
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) return '[]';
+    let result = '\n';
+    for (const item of obj) {
+      result += `${spaces}- ${jsonToYaml(item, indent + 1)}\n`;
+    }
+    return result.slice(0, -1); // Remove last newline
+  }
+  
+  if (typeof obj === 'object') {
+    if (Object.keys(obj).length === 0) return '{}';
+    let result = '\n';
+    for (const [key, value] of Object.entries(obj)) {
+      const formattedValue = jsonToYaml(value, indent + 1);
+      if (formattedValue.startsWith('\n')) {
+        result += `${spaces}${key}:${formattedValue}\n`;
+      } else {
+        result += `${spaces}${key}: ${formattedValue}\n`;
+      }
+    }
+    return result.slice(0, -1); // Remove last newline
+  }
+  
+  return String(obj);
+}
+
+function jsonToText(obj, indent = 0) {
+  const spaces = '  '.repeat(indent);
+  
+  if (obj === null) return 'null';
+  if (obj === undefined) return 'undefined';
+  if (typeof obj === 'string') return `"${obj}"`;
+  if (typeof obj === 'number' || typeof obj === 'boolean') return String(obj);
+  
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) return '[]';
+    let result = '[\n';
+    for (let i = 0; i < obj.length; i++) {
+      result += `${spaces}  [${i}] ${jsonToText(obj[i], indent + 1)}\n`;
+    }
+    result += `${spaces}]`;
+    return result;
+  }
+  
+  if (typeof obj === 'object') {
+    if (Object.keys(obj).length === 0) return '{}';
+    let result = '{\n';
+    for (const [key, value] of Object.entries(obj)) {
+      result += `${spaces}  ${key}: ${jsonToText(value, indent + 1)}\n`;
+    }
+    result += `${spaces}}`;
+    return result;
+  }
+  
+  return String(obj);
 }
 
 main().catch(error => {

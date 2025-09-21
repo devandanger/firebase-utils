@@ -63,13 +63,26 @@ Compare query results between projects:
   --stream --limit=10000
 ```
 
-### Save Normalized Output
+### Save Output for External Diff Tools
 
 ```bash
+# Save as JSON files for external diffing
 ./fsdiff.mjs --mode=query \
   --projectA=my-prod --collectionA=products \
   --projectB=my-dev --collectionB=products \
-  --output-dir=./diffs --format=json
+  --output-dir=./diffs --output-format=json
+
+# Save as separate files per document (for directory-based diff tools)
+./fsdiff.mjs --mode=query \
+  --projectA=my-prod --collectionA=users \
+  --projectB=my-dev --collectionB=users \
+  --output-dir=./diffs --separate-files --limit=100
+
+# Save in YAML format (more readable for humans)
+./fsdiff.mjs --mode=doc \
+  --projectA=prod --pathA="config/settings" \
+  --projectB=staging --pathB="config/settings" \
+  --output-dir=./diffs --output-format=yaml
 ```
 
 ## Options
@@ -85,11 +98,51 @@ Compare query results between projects:
 | `--fields` | Comma-separated fields to compare | All fields |
 | `--ignore-fields` | Comma-separated fields to ignore | None |
 | `--key` | Field for document matching | `id` |
-| `--format` | Output format: `pretty` or `json` | `pretty` |
+| `--format` | Output format: `pretty`, `side-by-side`, or `json` | `pretty` |
 | `--output-dir` | Directory for normalized JSON output | Optional |
+| `--output-format` | Format for output files: `json`, `yaml`, or `text` | `json` |
+| `--separate-files` | Create separate files per document for granular diffing | `false` |
 | `--limit` | Maximum documents to compare | No limit |
 | `--stream` | Use streaming for large queries | `false` |
 | `--verbose` | Enable verbose output | `false` |
+
+## Output Formats
+
+### Pretty Format (default)
+Traditional diff format with `+`, `-`, and `~` markers:
+```
+⚠ Document differences found:
+
+~ email: "john@example.com" → "john.doe@example.com"
++ phone: "+1234567890"
+- oldField: "deprecated"
+```
+
+### Side-by-Side Format
+Compare values side-by-side for easier visual comparison:
+```bash
+./fsdiff.mjs --mode=doc --format=side-by-side \
+  --projectA=prod --pathA="users/123" \
+  --projectB=staging --pathB="users/123"
+```
+
+Output:
+```
+SOURCE A                               │ SOURCE B
+────────────────────────────────────── │ ──────────────────────────────────────
+[email]
+"john@example.com"                     │ "john.doe@example.com"
+[status]
+"active"                               │ "pending"
+```
+
+### JSON Format
+Machine-readable output for automation:
+```bash
+./fsdiff.mjs --mode=query --format=json \
+  --projectA=prod --collectionA=users \
+  --projectB=staging --collectionB=users
+```
 
 ## Authentication
 
@@ -139,7 +192,7 @@ Value types:
   --whereA="status==active" --whereA="created>2024-01-01" \
   --projectB=staging --collectionB=orders \
   --whereB="status==active" --whereB="created>2024-01-01" \
-  --key=orderId --fields="total,items,customer"
+  --key=orderId --fields="total,items,customer" --format=side-by-side
 ```
 
 ### CI/CD Pipeline Integration
@@ -156,6 +209,61 @@ if [ $? -eq 2 ]; then
   cat config-diff.json
   exit 1
 fi
+```
+
+## External Diff Tool Integration
+
+When using `--output-dir`, fsdiff creates files optimized for external diff tools and includes commands in the summary file.
+
+### Generated Files
+
+```
+./output/
+├── sourceA-2024-01-15T10-30-45.json     # Source A data
+├── sourceB-2024-01-15T10-30-45.json     # Source B data
+├── metadata-2024-01-15T10-30-45.json    # Comparison metadata
+└── diff-summary-2024-01-15T10-30-45.json # Commands for external tools
+```
+
+### Ready-to-Run Commands
+
+The summary file contains commands for popular diff tools:
+
+```bash
+# View summary with suggested commands
+cat ./output/diff-summary-*.json
+
+# VS Code
+code --diff "./output/sourceA-2024-01-15T10-30-45.json" "./output/sourceB-2024-01-15T10-30-45.json"
+
+# Meld (GUI)
+meld "./output/sourceA-2024-01-15T10-30-45.json" "./output/sourceB-2024-01-15T10-30-45.json"
+
+# Terminal diff
+diff -u "./output/sourceA-2024-01-15T10-30-45.json" "./output/sourceB-2024-01-15T10-30-45.json"
+
+# Vim
+vimdiff "./output/sourceA-2024-01-15T10-30-45.json" "./output/sourceB-2024-01-15T10-30-45.json"
+```
+
+### Separate Files Mode
+
+For granular document-by-document comparison:
+
+```bash
+./fsdiff.mjs --mode=query --separate-files \
+  --projectA=prod --collectionA=users \
+  --projectB=staging --collectionB=users \
+  --output-dir=./diffs
+
+# This creates:
+# ./diffs/sourceA/2024-01-15T10-30-45/user1.json
+# ./diffs/sourceA/2024-01-15T10-30-45/user2.json
+# ./diffs/sourceB/2024-01-15T10-30-45/user1.json
+# ./diffs/sourceB/2024-01-15T10-30-45/user2.json
+
+# Compare directories
+meld "./diffs/sourceA/2024-01-15T10-30-45" "./diffs/sourceB/2024-01-15T10-30-45"
 ```
 
 ## Development

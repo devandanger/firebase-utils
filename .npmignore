@@ -1,0 +1,55 @@
+# Development files
+examples/
+test/
+.env
+.env.*
+!.env.example
+
+# Source control
+.git/
+.github/
+
+# Credentials and secrets
+credentials/
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
+# Build artifacts
+*.log
+node_modules/
+.npm/
+*.tgz
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation source
+docs/
+*.md
+!README.md
+!CHANGELOG.md
+
+# CI/CD
+.travis.yml
+.gitlab-ci.yml
+azure-pipelines.yml
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+diff-output/
+diffs/

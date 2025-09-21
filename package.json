@@ -1,5 +1,5 @@
 {
-  "name": "fsdiff",
+  "name": "@firebase-utils/fsdiff",
   "version": "1.0.0",
   "description": "CLI tool to compare Firestore data between two projects or environments",
   "type": "module",
@@ -7,18 +7,45 @@
   "bin": {
     "fsdiff": "./fsdiff.mjs"
   },
+  "files": [
+    "fsdiff.mjs",
+    "lib/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "start": "node fsdiff.mjs",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/**/*.test.mjs",
+    "test:unit": "node --test test/unit/*.test.mjs",
+    "test:integration": "node --test test/integration/*.test.mjs",
+    "test:coverage": "c8 --reporter=text --reporter=html npm test",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run lint && npm test",
+    "version": "npm run format && git add -A",
+    "postversion": "git push && git push --tags",
+    "format": "prettier --write \"**/*.{js,mjs,json,md}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/firebase-utils.git"
+  },
+  "homepage": "https://github.com/yourusername/firebase-utils#readme",
+  "bugs": {
+    "url": "https://github.com/yourusername/firebase-utils/issues"
   },
   "keywords": [
     "firestore",
     "firebase",
     "diff",
     "compare",
-    "cli"
+    "cli",
+    "gcp",
+    "google-cloud",
+    "devops",
+    "ci-cd"
   ],
-  "author": "",
+  "author": "Your Name <your.email@example.com>",
   "license": "MIT",
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",
@@ -28,7 +55,9 @@
     "ora": "^8.1.0"
   },
   "devDependencies": {
-    "@types/node": "^22.5.0"
+    "@types/node": "^22.5.0",
+    "sinon": "^17.0.1",
+    "c8": "^8.0.1"
   },
   "engines": {
     "node": ">=18.0.0"

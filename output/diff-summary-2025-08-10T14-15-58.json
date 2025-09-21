@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-08-10T14:15:58.680Z",
+  "comparison": {
+    "sourceA": {
+      "type": "document",
+      "count": 1
+    },
+    "sourceB": {
+      "type": "document",
+      "count": 1
+    }
+  },
+  "files": {
+    "sourceA": "sourceA-2025-08-10T14-15-58.json",
+    "sourceB": "sourceB-2025-08-10T14-15-58.json",
+    "metadata": "metadata-2025-08-10T14-15-58.json"
+  },
+  "externalDiffCommands": {
+    "vscode": "code --diff \"output/sourceA-2025-08-10T14-15-58.json\" \"output/sourceB-2025-08-10T14-15-58.json\"",
+    "meld": "meld \"output/sourceA-2025-08-10T14-15-58.json\" \"output/sourceB-2025-08-10T14-15-58.json\"",
+    "vimdiff": "vimdiff \"output/sourceA-2025-08-10T14-15-58.json\" \"output/sourceB-2025-08-10T14-15-58.json\"",
+    "diff": "diff -u \"output/sourceA-2025-08-10T14-15-58.json\" \"output/sourceB-2025-08-10T14-15-58.json\"",
+    "directory": null
+  }
+}

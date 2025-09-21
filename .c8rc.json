@@ -1,0 +1,21 @@
+{
+  "reporter": ["text", "html", "lcov"],
+  "exclude": [
+    "test/**",
+    "examples/**",
+    "scripts/**",
+    "coverage/**",
+    "node_modules/**"
+  ],
+  "include": [
+    "fsdiff.mjs",
+    "lib/**/*.mjs"
+  ],
+  "all": true,
+  "check-coverage": true,
+  "lines": 80,
+  "functions": 80,
+  "branches": 70,
+  "statements": 80,
+  "reports-dir": "./coverage"
+}

@@ -1,0 +1,68 @@
+{
+  "_id": "giWS5qNVAH3k3awObRQ1",
+  "_metadata": {
+    "createTime": {
+      "_type": "Timestamp",
+      "iso": "2025-08-10T14:14:35.662Z",
+      "nanoseconds": 661567000,
+      "seconds": 1754835275
+    },
+    "updateTime": {
+      "_type": "Timestamp",
+      "iso": "2025-08-10T14:14:35.662Z",
+      "nanoseconds": 661567000,
+      "seconds": 1754835275
+    }
+  },
+  "additionalInfo": {
+    "customerContactInfo": {
+      "email": "",
+      "firstName": "Web Evan",
+      "lastName": "",
+      "phoneNumber": "",
+      "venueFields": []
+    }
+  },
+  "checkout": {
+    "grossUpPaymentFees": 0.67,
+    "netAmount": 10.9,
+    "orderSubTotal": 10,
+    "orderTotal": 12.66,
+    "paymentFees": 0.67,
+    "paymentMethodRequired": true,
+    "serviceFees": 1.09,
+    "subTotalBeforeFees": 10.9,
+    "tax": 0,
+    "tip": 0.9,
+    "totalFees": 1.76
+  },
+  "createDt": "2025-08-10T14:14:32.378Z",
+  "items": [
+    {
+      "comments": "",
+      "customizations": [
+        {
+          "name": "Flavor",
+          "options": [
+            {
+              "enabled": true,
+              "name": "Cookies N' Cream",
+              "price": 0,
+              "selected": true
+            }
+          ]
+        }
+      ],
+      "id": "wLRQ00Otumk0hIiwc0No",
+      "name": "Ice Cream",
+      "price": 10,
+      "taxAmount": 0,
+      "totalPrice": 10
+    }
+  ],
+  "location": "web2",
+  "name": "Evan web2",
+  "orderID": 224,
+  "status": "paid",
+  "uid": "Dzd1LPZdeAVrXcTTrgFrqyi36kr1"
+}
