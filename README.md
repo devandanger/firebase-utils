@@ -1,52 +1,98 @@
-# fsdiff - Firestore Data Comparison Tool
+# Firebase Toolbox - Firestore CLI Utilities
 
-A powerful CLI tool for comparing Firestore data between two projects or environments without using the Firebase console UI.
+A collection of powerful CLI tools for working with Firestore data across projects and environments.
+
+## Tools Included
+
+- **fsdiff**: Compare Firestore data between two projects or environments
+- **fsview**: View and export Firestore documents in JSON format
 
 ## Features
 
+### fsdiff
 - **Document Comparison**: Compare single documents between projects
 - **Query Comparison**: Compare query results with filtering and field selection
+- **Streaming Support**: Efficiently handle large queries
+- **Flexible Output**: Pretty-printed, side-by-side, or JSON format
+- **CI/CD Ready**: Exit codes indicate success (0), differences (2), or errors (1)
+
+### fsview
+- **Document Viewing**: View any Firestore document in JSON format
+- **Field Filtering**: Include or exclude specific fields
+- **Pretty Printing**: Optional formatted JSON output
+- **Export Ready**: Pipe output to files or other tools
+
+### Common Features
 - **Multiple Authentication Methods**: Service account JSON, GOOGLE_APPLICATION_CREDENTIALS, or gcloud ADC
 - **Firestore Type Normalization**: Handles Timestamp, GeoPoint, DocumentReference, and Bytes types
-- **Streaming Support**: Efficiently handle large queries
-- **Flexible Output**: Pretty-printed or JSON format
-- **Field Management**: Select specific fields or ignore fields during comparison
-- **CI/CD Ready**: Exit codes indicate success (0), differences (2), or errors (1)
+- **Field Management**: Select specific fields or ignore fields
 
 ## Installation
 
 ```bash
-npm install
-npm link  # Optional: to use globally as 'fsdiff'
+# Install globally
+npm install -g @firebase-toolbox/firebase-utils
+
+# Or use with npx
+npx @firebase-toolbox/firebase-utils
 ```
 
 ## Usage
 
-### Document Comparison
+### fsview - View Firestore Documents
+
+View a single document:
+
+```bash
+fsview --project=my-prod --path="users/abc123"
+```
+
+View with service account authentication:
+
+```bash
+fsview --project=my-prod --path="users/abc123" --sa=service-account.json
+```
+
+View specific fields only:
+
+```bash
+fsview --project=my-prod --path="users/abc123" \
+  --fields="name,email,role" --pretty
+```
+
+Export to file:
+
+```bash
+fsview --project=my-prod --path="config/settings" --pretty > settings.json
+```
+
+### fsdiff - Compare Firestore Data
+
+#### Document Comparison
 
 Compare a single document between two projects:
 
 ```bash
-./fsdiff.mjs --mode=doc \
+fsdiff --mode=doc \
   --projectA=my-prod --pathA="users/abc123" --saA=sa-prod.json \
   --projectB=my-dev  --pathB="users/abc123" --saB=sa-dev.json
 ```
 
-### Query Comparison
+#### Query Comparison
 
 Compare query results between projects:
 
 ```bash
-./fsdiff.mjs --mode=query \
+fsdiff --mode=query \
   --projectA=my-prod --collectionA=users --whereA="active==true" \
   --projectB=my-dev  --collectionB=users --whereB="active==true" \
   --fields="role,status" --format=pretty
 ```
 
-### With Multiple Filters
+#### With Multiple Filters
 
 ```bash
-./fsdiff.mjs --mode=query \
+fsdiff --mode=query \
   --projectA=my-prod --collectionA=orders \
   --whereA="status==pending" --whereA="amount>100" \
   --projectB=my-dev --collectionB=orders \
@@ -54,38 +100,51 @@ Compare query results between projects:
   --key=orderId
 ```
 
-### Streaming Large Queries
+#### Streaming Large Queries
 
 ```bash
-./fsdiff.mjs --mode=query \
+fsdiff --mode=query \
   --projectA=my-prod --collectionA=events \
   --projectB=my-dev --collectionB=events \
   --stream --limit=10000
 ```
 
-### Save Output for External Diff Tools
+#### Save Output for External Diff Tools
 
 ```bash
 # Save as JSON files for external diffing
-./fsdiff.mjs --mode=query \
+fsdiff --mode=query \
   --projectA=my-prod --collectionA=products \
   --projectB=my-dev --collectionB=products \
   --output-dir=./diffs --output-format=json
 
 # Save as separate files per document (for directory-based diff tools)
-./fsdiff.mjs --mode=query \
+fsdiff --mode=query \
   --projectA=my-prod --collectionA=users \
   --projectB=my-dev --collectionB=users \
   --output-dir=./diffs --separate-files --limit=100
 
 # Save in YAML format (more readable for humans)
-./fsdiff.mjs --mode=doc \
+fsdiff --mode=doc \
   --projectA=prod --pathA="config/settings" \
   --projectB=staging --pathB="config/settings" \
   --output-dir=./diffs --output-format=yaml
 ```
 
-## Options
+## Command Options
+
+### fsview Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--project` | Firebase project ID | Required |
+| `--path` | Document path (e.g., users/user123) | Required |
+| `--sa` | Service account JSON file path | Optional |
+| `--fields` | Comma-separated fields to include | All fields |
+| `--ignore-fields` | Comma-separated fields to ignore | None |
+| `--pretty` | Pretty print JSON output | `false` |
+
+### fsdiff Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
@@ -108,7 +167,9 @@ Compare query results between projects:
 
 ## Output Formats
 
-### Pretty Format (default)
+### fsdiff Output Formats
+
+#### Pretty Format (default)
 Traditional diff format with `+`, `-`, and `~` markers:
 ```
 ⚠ Document differences found:
@@ -118,10 +179,10 @@ Traditional diff format with `+`, `-`, and `~` markers:
 - oldField: "deprecated"
 ```
 
-### Side-by-Side Format
+#### Side-by-Side Format
 Compare values side-by-side for easier visual comparison:
 ```bash
-./fsdiff.mjs --mode=doc --format=side-by-side \
+fsdiff --mode=doc --format=side-by-side \
   --projectA=prod --pathA="users/123" \
   --projectB=staging --pathB="users/123"
 ```
@@ -136,10 +197,10 @@ SOURCE A                               │ SOURCE B
 "active"                               │ "pending"
 ```
 
-### JSON Format
+#### JSON Format
 Machine-readable output for automation:
 ```bash
-./fsdiff.mjs --mode=query --format=json \
+fsdiff --mode=query --format=json \
   --projectA=prod --collectionA=users \
   --projectB=staging --collectionB=users
 ```
@@ -178,7 +239,7 @@ Value types:
 ### Compare User Profiles
 
 ```bash
-./fsdiff.mjs --mode=doc \
+fsdiff --mode=doc \
   --projectA=prod --pathA="users/user123/profile" \
   --projectB=staging --pathB="users/user123/profile" \
   --ignore-fields="lastSeen,updatedAt"
@@ -187,7 +248,7 @@ Value types:
 ### Compare Active Orders
 
 ```bash
-./fsdiff.mjs --mode=query \
+fsdiff --mode=query \
   --projectA=prod --collectionA=orders \
   --whereA="status==active" --whereA="created>2024-01-01" \
   --projectB=staging --collectionB=orders \
@@ -199,7 +260,7 @@ Value types:
 
 ```bash
 #!/bin/bash
-./fsdiff.mjs --mode=query \
+fsdiff --mode=query \
   --projectA=$PROD_PROJECT --collectionA=config \
   --projectB=$STAGING_PROJECT --collectionB=config \
   --format=json > config-diff.json
@@ -251,7 +312,7 @@ vimdiff "./output/sourceA-2024-01-15T10-30-45.json" "./output/sourceB-2024-01-15
 For granular document-by-document comparison:
 
 ```bash
-./fsdiff.mjs --mode=query --separate-files \
+fsdiff --mode=query --separate-files \
   --projectA=prod --collectionA=users \
   --projectB=staging --collectionB=users \
   --output-dir=./diffs
@@ -272,26 +333,30 @@ meld "./diffs/sourceA/2024-01-15T10-30-45" "./diffs/sourceB/2024-01-15T10-30-45"
 
 ```
 firebase-utils/
-├── fsdiff.mjs              # Main CLI entry point
+├── bin/
+│   ├── fsdiff.mjs            # Compare tool CLI
+│   └── fsview.mjs            # View tool CLI
 ├── lib/
-│   ├── firestore-client.mjs   # Firestore connection and query handling
-│   ├── normalizer.mjs         # Type normalization and field filtering
-│   ├── comparator.mjs         # Document and query comparison logic
-│   ├── differ.mjs             # Diff calculation engine
-│   └── formatter.mjs          # Output formatting (pretty/JSON)
-├── examples/
-│   ├── compare-docs.sh        # Document comparison example
-│   ├── compare-queries.sh     # Query comparison example
-│   └── streaming-comparison.sh # Large dataset streaming example
+│   ├── firestore-client.mjs # Firestore connection and query handling
+│   ├── normalizer.mjs       # Type normalization and field filtering
+│   ├── comparator.mjs       # Document and query comparison logic
+│   ├── differ.mjs           # Diff calculation engine
+│   └── formatter.mjs        # Output formatting (pretty/JSON)
+├── test/
+│   ├── unit/                # Unit tests
+│   └── integration/         # Integration tests
 ├── package.json
 ├── README.md
-└── .env.example
+├── LICENSE
+└── CHANGELOG.md
 ```
 
 ### Architecture Highlights
 
+- **Multi-Command Structure**: Scalable CLI design with separate commands
+- **Shared Libraries**: Common functionality in reusable modules
 - **Streaming Support**: Efficiently handles large queries without loading all data into memory
-- **Parallel Processing**: Fetches data from both sources simultaneously
+- **Parallel Processing**: Fetches data from both sources simultaneously (fsdiff)
 - **Type Normalization**: Consistent handling of Firestore special types
 - **Modular Design**: Separated concerns for authentication, normalization, comparison, and formatting
 
