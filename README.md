@@ -1,5 +1,9 @@
 # Firebase Toolbox - Firestore CLI Utilities
 
+<div align="center">
+  <img src="docs/assets/firebase-toolbox.png" alt="Firebase Toolbox" width="200"/>
+</div>
+
 A collection of powerful CLI tools for working with Firestore data across projects and environments.
 
 ## Tools Included
